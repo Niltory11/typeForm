@@ -12,6 +12,20 @@ function typeform_test_notice() {
     echo '<div class="notice notice-info is-dismissible">';
     echo '<p><strong>TypeForm Plugin is loaded!</strong> Check the sidebar for TypeForm menu.</p>';
     echo '</div>';
+    
+    // Force recreate tables if needed
+    global $wpdb;
+    $forms_table = $wpdb->prefix . 'typeform_forms';
+    $submissions_table = $wpdb->prefix . 'typeform_submissions';
+    
+    $forms_exists = $wpdb->get_var("SHOW TABLES LIKE '$forms_table'") == $forms_table;
+    $submissions_exists = $wpdb->get_var("SHOW TABLES LIKE '$submissions_table'") == $submissions_table;
+    
+    if (!$forms_exists || !$submissions_exists) {
+        echo '<div class="notice notice-warning is-dismissible">';
+        echo '<p><strong>TypeForm Tables Missing!</strong> Deactivate and reactivate the plugin to create tables.</p>';
+        echo '</div>';
+    }
 }
 
 // Handle form submissions
@@ -20,6 +34,24 @@ function handle_typeform_submission() {
     if ($_POST && isset($_POST['action']) && $_POST['action'] == 'submit_typeform') {
         global $wpdb;
         $table_name = $wpdb->prefix . 'typeform_submissions';
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name;
+        
+        if (!$table_exists) {
+            // Create table if it doesn't exist
+            $charset_collate = $wpdb->get_charset_collate();
+            $sql = "CREATE TABLE $table_name (
+                id mediumint(9) NOT NULL AUTO_INCREMENT,
+                form_id mediumint(9) NOT NULL,
+                data longtext NOT NULL,
+                created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id)
+            ) $charset_collate;";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
         
         $form_id = intval($_POST['form_id']);
         $data = [];
@@ -30,7 +62,10 @@ function handle_typeform_submission() {
             $data[$key] = sanitize_text_field($value);
         }
 
-        $wpdb->insert(
+        // Debug: Log the submission attempt
+        error_log('TypeForm Submission: Form ID = ' . $form_id . ', Data = ' . print_r($data, true));
+
+        $result = $wpdb->insert(
             $table_name,
             array(
                 'form_id' => $form_id,
@@ -39,9 +74,27 @@ function handle_typeform_submission() {
             array('%d', '%s')
         );
 
+        if ($result === false) {
+            error_log('TypeForm Error: ' . $wpdb->last_error);
+        } else {
+            error_log('TypeForm Success: Submission saved with ID = ' . $wpdb->insert_id);
+        }
+
         // Redirect to prevent resubmission
         wp_redirect(add_query_arg('submitted', '1', wp_get_referer()));
         exit;
+    }
+}
+
+// Add success message
+add_action('wp_footer', 'typeform_success_message');
+function typeform_success_message() {
+    if (isset($_GET['submitted']) && $_GET['submitted'] == '1') {
+        echo '<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            alert("Form submitted successfully!");
+        });
+        </script>';
     }
 }
 
@@ -54,13 +107,14 @@ function typeform_shortcode($atts) {
     $atts = shortcode_atts(array('id' => 1), $atts);
     $form = $wpdb->get_row($wpdb->prepare("SELECT * FROM $forms_table WHERE id=%d", $atts['id']));
 
-    if (!$form) return "<p>No form found.</p>";
+    if (!$form) return "<p>No form found with ID: " . $atts['id'] . "</p>";
 
     $fields = json_decode($form->fields, true);
     if (!$fields) return "<p>Form is empty.</p>";
 
     ob_start(); ?>
-    <div class="typeform-container">
+    <div class="typeform-container" style="max-width: 500px; margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+        <h3><?php echo esc_html($form->title); ?></h3>
         <form method="post" class="typeform-form">
             <input type="hidden" name="action" value="submit_typeform">
             <input type="hidden" name="form_id" value="<?php echo esc_attr($atts['id']); ?>">
@@ -69,17 +123,18 @@ function typeform_shortcode($atts) {
                 <?php if ($field['type'] === 'text' || $field['type'] === 'email'): ?>
                     <p>
                         <label for="<?php echo esc_attr($field['name']); ?>"><?php echo esc_html($field['label']); ?></label><br>
-                        <input type="<?php echo esc_attr($field['type']); ?>" name="<?php echo esc_attr($field['name']); ?>" id="<?php echo esc_attr($field['name']); ?>" required>
+                        <input type="<?php echo esc_attr($field['type']); ?>" name="<?php echo esc_attr($field['name']); ?>" id="<?php echo esc_attr($field['name']); ?>" required style="width: 100%; padding: 8px; margin: 5px 0;">
                     </p>
                 <?php elseif ($field['type'] === 'textarea'): ?>
                     <p>
                         <label for="<?php echo esc_attr($field['name']); ?>"><?php echo esc_html($field['label']); ?></label><br>
-                        <textarea name="<?php echo esc_attr($field['name']); ?>" id="<?php echo esc_attr($field['name']); ?>" rows="5" required></textarea>
+                        <textarea name="<?php echo esc_attr($field['name']); ?>" id="<?php echo esc_attr($field['name']); ?>" rows="5" required style="width: 100%; padding: 8px; margin: 5px 0;"></textarea>
                     </p>
                 <?php elseif ($field['type'] === 'select'): ?>
                     <p>
                         <label for="<?php echo esc_attr($field['name']); ?>"><?php echo esc_html($field['label']); ?></label><br>
-                        <select name="<?php echo esc_attr($field['name']); ?>" id="<?php echo esc_attr($field['name']); ?>" required>
+                        <select name="<?php echo esc_attr($field['name']); ?>" id="<?php echo esc_attr($field['name']); ?>" required style="width: 100%; padding: 8px; margin: 5px 0;">
+                            <option value="">Select an option</option>
                             <?php foreach ($field['options'] as $option): ?>
                                 <option value="<?php echo esc_attr($option); ?>"><?php echo esc_html($option); ?></option>
                             <?php endforeach; ?>
@@ -88,7 +143,7 @@ function typeform_shortcode($atts) {
                 <?php endif; ?>
             <?php endforeach; ?>
             <p>
-                <input type="submit" value="Submit Form" class="button button-primary">
+                <input type="submit" value="Submit Form" class="button button-primary" style="background: #0073aa; color: white; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer;">
             </p>
         </form>
     </div>
