@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name:     TypeForm - Modern Form Builder
- *Description:      Create beautiful, responsive forms with drag-and-drop builder
- * version:         1.1.0 
+ * Plugin Name:       TypeForm - Modern Form Builder
+ * Description:       Create beautiful, responsive forms enabling shortcode to be used in any post or page
+ * version:           1.1.0 
  * requires at least: 5.0
- * requires PHP:    7.2
- * author:          Ahsan Habib Rafat
- * author URI:      https://github.com/Niltory11
- * license:         GPLv2 or later
- * license URI:     https://www.gnu.org/licenses/gpl-2.0.html
- * update URI:      https://github.com/Niltory11
- * text domain:     sstwp-rafat
- * domain path:     /languages   
+ * requires PHP:      7.2
+ * author:            Ahsan Habib Rafat
+ * author URI:        https://github.com/Niltory11
+ * license:           GPLv2 or later
+ * license URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * update URI:        https://github.com/Niltory11
+ * text domain:       sstwp-rafat
+ * domain path:       /languages   
  */
 
 
