@@ -123,6 +123,29 @@ function typeform_success_message() {
     }
 }
 
+// Enqueue frontend assets
+add_action('wp_enqueue_scripts', 'typeform_enqueue_assets');
+function typeform_enqueue_assets() {
+	// Only enqueue on pages where the shortcode exists or on singular pages
+	if (is_admin()) return;
+	if (!is_singular() && !is_front_page() && !is_home()) return;
+	// Basic heuristic: always enqueue on the frontend; it's lightweight
+	wp_enqueue_style(
+		'typeform-frontend',
+		plugins_url('assets/style.css', __FILE__),
+		array(),
+		'1.0.0'
+	);
+
+	wp_enqueue_script(
+		'typeform-frontend',
+		plugins_url('assets/script.js', __FILE__),
+		array(),
+		'1.0.0',
+		true
+	);
+}
+
 // Add shortcode for frontend forms
 add_shortcode('typeform', 'typeform_shortcode');
 function typeform_shortcode($atts) {
