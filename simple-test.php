@@ -3,7 +3,7 @@
 Plugin Name: TypeForm - Modern Form Builder
 Description: Create beautiful, responsive forms with drag-and-drop builder
 Version: 1.1.0
-Author: Your Name
+Author: Ahsan Habib Rafat
 */
 
 // Test if plugin is loading
@@ -28,9 +28,10 @@ function typeform_test_notice() {
     }
 }
 
-// Handle form submissions
+// Handle form submissions and deletions
 add_action('init', 'handle_typeform_submission');
 function handle_typeform_submission() {
+    // Handle form submission
     if ($_POST && isset($_POST['action']) && $_POST['action'] == 'submit_typeform') {
         global $wpdb;
         $table_name = $wpdb->prefix . 'typeform_submissions';
@@ -82,6 +83,30 @@ function handle_typeform_submission() {
 
         // Redirect to prevent resubmission
         wp_redirect(add_query_arg('submitted', '1', wp_get_referer()));
+        exit;
+    }
+    
+    // Handle submission deletion
+    if (isset($_GET['action']) && $_GET['action'] == 'delete_submission' && isset($_GET['id'])) {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized access');
+        }
+        
+        global $wpdb;
+        $submissions_table = $wpdb->prefix . 'typeform_submissions';
+        $submission_id = intval($_GET['id']);
+        
+        $result = $wpdb->delete(
+            $submissions_table,
+            array('id' => $submission_id),
+            array('%d')
+        );
+        
+        if ($result !== false) {
+            wp_redirect(add_query_arg('deleted', '1', admin_url('admin.php?page=typeform-submissions')));
+        } else {
+            wp_redirect(add_query_arg('error', '1', admin_url('admin.php?page=typeform-submissions')));
+        }
         exit;
     }
 }
@@ -358,6 +383,19 @@ function typeform_submissions_page() {
     $submissions_table = $wpdb->prefix . 'typeform_submissions';
     $forms_table = $wpdb->prefix . 'typeform_forms';
     
+    // Show success/error messages
+    if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
+        echo '<div class="notice notice-success is-dismissible">';
+        echo '<p><strong>Success!</strong> Submission deleted successfully.</p>';
+        echo '</div>';
+    }
+    
+    if (isset($_GET['error']) && $_GET['error'] == '1') {
+        echo '<div class="notice notice-error is-dismissible">';
+        echo '<p><strong>Error!</strong> Failed to delete submission.</p>';
+        echo '</div>';
+    }
+    
     $submissions = $wpdb->get_results("SELECT * FROM $submissions_table ORDER BY created_at DESC");
 
     echo '<div class="wrap"><h1>Form Submissions</h1>';
@@ -366,7 +404,7 @@ function typeform_submissions_page() {
         echo '<p>No submissions yet. Create a form and test it!</p>';
     } else {
         echo '<table class="wp-list-table widefat fixed striped">';
-        echo '<thead><tr><th>ID</th><th>Form</th><th>Answers</th><th>Date</th></tr></thead><tbody>';
+        echo '<thead><tr><th>ID</th><th>Form</th><th>Answers</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
         
         foreach ($submissions as $submission) {
             $data = json_decode($submission->data, true);
@@ -391,6 +429,11 @@ function typeform_submissions_page() {
             
             echo '</td>';
             echo '<td>' . $submission->created_at . '</td>';
+            echo '<td>';
+            echo '<a href="' . admin_url('admin.php?page=typeform-submissions&action=delete_submission&id=' . $submission->id) . '" ';
+            echo 'onclick="return confirm(\'Are you sure you want to delete this submission? This action cannot be undone.\')" ';
+            echo 'class="button button-small button-link-delete">Delete</a>';
+            echo '</td>';
             echo '</tr>';
         }
         
