@@ -347,14 +347,14 @@ function typeform_builder_page() {
     echo '<h3>Add Questions</h3>';
     echo '<div id="fields-container">';
     echo '<div class="field-row">';
-    echo '<p><label>Question: <input type="text" name="field_label[]" placeholder="Enter your question" required></label></p>';
-    echo '<p><label>Type: <select name="field_type[]" required>';
+    echo '<p><label>Question: <input type="text" name="field_label[]" placeholder="Enter your question" required style="width: 100%; "></label></p>';
+    echo '<p><label>Type: <select name="field_type[]" required  ">';
     echo '<option value="text">Text Input</option>';
     echo '<option value="email">Email Input</option>';
     echo '<option value="textarea">Text Area</option>';
     echo '<option value="select">Dropdown/Select</option>';
     echo '</select></label></p>';
-    echo '<p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3"></label></p>';
+    echo '<p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3" required style="width: 100%; "></label></p>';
     echo '</div>';
     echo '</div>';
     
@@ -393,14 +393,14 @@ function typeform_builder_page() {
         newField.style.paddingTop = "10px";
         newField.style.marginTop = "10px";
         newField.innerHTML = `
-            <p><label>Question: <input type="text" name="field_label[]" placeholder="Enter your question" required></label></p>
+            <p><label>Question: <input type="text" name="field_label[]" placeholder="Enter your question" required style="width: 100%; "></label></p>
             <p><label>Type: <select name="field_type[]" required>
                 <option value="text">Text Input</option>
                 <option value="email">Email Input</option>
                 <option value="textarea">Text Area</option>
                 <option value="select">Dropdown/Select</option>
             </select></label></p>
-            <p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3"></label></p>
+            <p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3"required style="width: 100%; "></label></p>
         `;
         container.appendChild(newField);
     }
