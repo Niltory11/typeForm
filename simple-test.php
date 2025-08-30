@@ -342,19 +342,19 @@ function typeform_builder_page() {
     // Create new form section
     echo '<h2>Create New Form</h2>';
     echo '<form method="post" style="max-width: 600px;">';
-    echo '<p><label>Form Title: <input type="text" name="form_title" required style="width: 100%;"></label></p>';
+    echo '<h1><label>Form Title: <input type="text" name="form_title" required style="width: 100%;"></label></h1>';
     
     echo '<h3>Add Questions</h3>';
     echo '<div id="fields-container">';
     echo '<div class="field-row">';
     echo '<p><label>Question: <input type="text" name="field_label[]" placeholder="Enter your question" required style="width: 100%; "></label></p>';
-    echo '<p><label>Type: <select name="field_type[]" required  ">';
+    echo '<p><label>Type: <select name="field_type[]"   ">';
     echo '<option value="text">Text Input</option>';
     echo '<option value="email">Email Input</option>';
     echo '<option value="textarea">Text Area</option>';
     echo '<option value="select">Dropdown/Select</option>';
     echo '</select></label></p>';
-    echo '<p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3" required style="width: 100%; "></label></p>';
+    echo '<p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3"  style="width: 100%; "></label></p>';
     echo '</div>';
     echo '</div>';
     
@@ -393,14 +393,14 @@ function typeform_builder_page() {
         newField.style.paddingTop = "10px";
         newField.style.marginTop = "10px";
         newField.innerHTML = `
-            <p><label>Question: <input type="text" name="field_label[]" placeholder="Enter your question" required style="width: 100%; "></label></p>
-            <p><label>Type: <select name="field_type[]" required>
+            <p><label>Question: <input type="text" name="field_label[]" placeholder="Enter your question" required style="width: 100%;"></label></p>
+            <p><label>Type: <select name="field_type[]" required style="width: 100%;">
                 <option value="text">Text Input</option>
                 <option value="email">Email Input</option>
                 <option value="textarea">Text Area</option>
                 <option value="select">Dropdown/Select</option>
             </select></label></p>
-            <p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3"required style="width: 100%; "></label></p>
+            <p><label>Options (for dropdown): <input type="text" name="field_options[]" placeholder="Option 1, Option 2, Option 3" style="width: 100%;"></label></p>
         `;
         container.appendChild(newField);
     }
